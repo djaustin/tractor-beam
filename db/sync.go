@@ -19,7 +19,7 @@ func SyncDatabase(ctx context.Context, client *redis.Client, redisPrefix, srcPat
 	}
 	l.Logger.Infof("key-value pairs extracted from spreadsheet")
 	count := 0
-	l.Logger.Infof("starting synchronisation of %d key-value pairs to database", len(pairs))
+	l.Logger.Infof("starting insert of %d key-value pairs to database", len(pairs))
 	for k, v := range pairs {
 		redisKey := redisPrefix + k
 		res := client.Set(ctx, redisKey, v, 0)

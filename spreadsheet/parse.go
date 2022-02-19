@@ -1,6 +1,7 @@
 package spreadsheet
 
 import (
+	"fmt"
 	"strings"
 
 	l "github.com/djaustin/tractor-beam/logger"
@@ -19,8 +20,10 @@ func ExtractPairs(path, sheet, keyHeader, valHeader string) (map[string]string, 
 		return nil, err
 	}
 
-	keyColIdx, valColIdx := findColumnIndices(cols, keyHeader, valHeader)
-
+	keyColIdx, valColIdx, err := findColumnIndices(cols, keyHeader, valHeader)
+	if err != nil {
+		return nil, err
+	}
 	rows, err := f.GetRows(sheet)
 	if err != nil {
 		l.Logger.Fatal(err)
@@ -40,7 +43,7 @@ func ExtractPairs(path, sheet, keyHeader, valHeader string) (map[string]string, 
 	return results, nil
 }
 
-func findColumnIndices(cols [][]string, keyHeader, valHeader string) (keyColIdx, valColIdx int) {
+func findColumnIndices(cols [][]string, keyHeader, valHeader string) (keyColIdx, valColIdx int, err error) {
 	var keyColFound, valColFound bool
 
 	for idx, column := range cols {
@@ -58,5 +61,11 @@ func findColumnIndices(cols [][]string, keyHeader, valHeader string) (keyColIdx,
 			break
 		}
 	}
-	return keyColIdx, valColIdx
+	if !valColFound {
+		return keyColIdx, valColIdx, fmt.Errorf("failed to find value column '%s'", valHeader)
+	}
+	if !keyColFound {
+		return keyColIdx, valColIdx, fmt.Errorf("failed to find key column '%s'", keyHeader)
+	}
+	return keyColIdx, valColIdx, nil
 }

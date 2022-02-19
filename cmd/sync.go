@@ -52,7 +52,7 @@ var syncCmd = &cobra.Command{
 			viper.GetString("value_column"),
 		)
 		if err != nil {
-			l.Logger.Fatalf("unable to synchronise %s with data from file %s: %v", redisAddress, spreadsheetPath, err)
+			l.Logger.Fatalf("unable to synchronise database from file: %v", err)
 		}
 		l.Logger.Infof("%d values synchronised from '%s' to '%s'", count, spreadsheetPath, redisAddress)
 	},
