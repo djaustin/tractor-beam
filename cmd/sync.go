@@ -25,6 +25,7 @@ import (
 	"fmt"
 
 	"github.com/djaustin/tractor-beam/db"
+	l "github.com/djaustin/tractor-beam/logger"
 	"github.com/go-redis/redis/v8"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -41,7 +42,8 @@ var syncCmd = &cobra.Command{
 
 	Run: func(cmd *cobra.Command, args []string) {
 		spreadsheetPath, redisAddress := args[0], args[1]
-		db.SyncDatabase(cmd.Context(),
+		l.Logger.Infof("starting synchronisation from file %s to %s", spreadsheetPath, redisAddress)
+		count, err := db.SyncDatabase(cmd.Context(),
 			redis.NewClient(&redis.Options{Addr: redisAddress}),
 			viper.GetString("redis_prefix"),
 			spreadsheetPath,
@@ -49,6 +51,10 @@ var syncCmd = &cobra.Command{
 			viper.GetString("key_column"),
 			viper.GetString("value_column"),
 		)
+		if err != nil {
+			l.Logger.Fatalf("unable to synchronise %s with data from file %s: %v", redisAddress, spreadsheetPath, err)
+		}
+		l.Logger.Infof("%d values synchronised from %s to %s", count, spreadsheetPath, redisAddress)
 	},
 }
 

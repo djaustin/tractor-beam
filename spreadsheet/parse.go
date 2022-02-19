@@ -1,9 +1,9 @@
 package spreadsheet
 
 import (
-	"log"
 	"strings"
 
+	l "github.com/djaustin/tractor-beam/logger"
 	"github.com/xuri/excelize/v2"
 )
 
@@ -22,7 +22,7 @@ func ExtractPairs(path, sheet, keyHeader, valHeader string) (map[string]string, 
 
 	rows, err := f.GetRows("Sheet1")
 	if err != nil {
-		log.Fatalln(err)
+		l.Logger.Fatal(err)
 	}
 
 	results := make(map[string]string, len(rows)-1)

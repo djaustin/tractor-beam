@@ -23,12 +23,12 @@ package cmd
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"os/signal"
 	"syscall"
 
 	"github.com/djaustin/tractor-beam/db"
+	l "github.com/djaustin/tractor-beam/logger"
 	"github.com/fsnotify/fsnotify"
 	"github.com/go-redis/redis/v8"
 	"github.com/spf13/cobra"
@@ -39,14 +39,14 @@ import (
 var watchCmd = &cobra.Command{
 	Use:        "watch SPREADSHEET_PATH REDIS_ADDRESS",
 	Args:       cobra.ExactArgs(2),
-	Short:      "Watches a spreadsheet file for changes and synchronises to the Redis database on change",
+	Short:      "Watches a spreadsheet file for changes and synchronises the Redis database on change",
 	Aliases:    []string{"w"},
 	SuggestFor: []string{"monitor", "track"},
 	Example:    fmt.Sprintf("%s watch ./Book1.xlsx 192.168.1.2:6379 -p password123", rootCmd.Use),
 	Run: func(cmd *cobra.Command, args []string) {
 		spreadsheetPath, redisAddress := args[0], args[1]
 		// Run initial sync before watching
-		log.Printf("starting initial synchronisation from file %s to %s", spreadsheetPath, redisAddress)
+		l.Logger.Infof("starting initial synchronisation from file %s to %s", spreadsheetPath, redisAddress)
 		updateCount, err := db.SyncDatabase(cmd.Context(),
 			redis.NewClient(&redis.Options{Addr: redisAddress}),
 			viper.GetString("redis_prefix"),
@@ -56,13 +56,14 @@ var watchCmd = &cobra.Command{
 			viper.GetString("value_column"),
 		)
 		if err != nil {
-			log.Fatalf("unable to synchronise %s with data from file %s: %v", redisAddress, spreadsheetPath, err)
+			l.Logger.Fatalf("unable to synchronise %s with data from file %s: %v", redisAddress, spreadsheetPath, err)
 		}
-		log.Printf("%d values synchronised from %s to %s", updateCount, spreadsheetPath, redisAddress)
+		l.Logger.Infof("%d values synchronised from %s to %s", updateCount, spreadsheetPath, redisAddress)
 
 		watcher, err := fsnotify.NewWatcher()
-		cobra.CheckErr(err)
-
+		if err != nil {
+			l.Logger.Fatalf("failed to create new file watcher: %v", err)
+		}
 		go func() {
 			for {
 				select {
@@ -70,8 +71,8 @@ var watchCmd = &cobra.Command{
 					if event.Op != fsnotify.Write && event.Op != fsnotify.Create {
 						continue
 					}
-					log.Printf("detected %s on watched file %s", event.Op.String(), event.Name)
-					log.Printf("synchronising data from file to %v", redisAddress)
+					l.Logger.Infof("detected %s on watched file %s", event.Op.String(), event.Name)
+					l.Logger.Infof("synchronising data from file to %v", redisAddress)
 					updateCount, err := db.SyncDatabase(cmd.Context(),
 						redis.NewClient(&redis.Options{Addr: redisAddress}),
 						viper.GetString("redis_prefix"),
@@ -81,12 +82,12 @@ var watchCmd = &cobra.Command{
 						viper.GetString("value_column"),
 					)
 					if err != nil {
-						log.Printf("error synchronising database: %v", err)
+						l.Logger.Errorf("error synchronising database: %v", err)
 					}
-					log.Printf("%d values synchronised from %s to %s", updateCount, spreadsheetPath, redisAddress)
+					l.Logger.Infof("%d values synchronised from %s to %s", updateCount, spreadsheetPath, redisAddress)
 
 				case err := <-watcher.Errors:
-					log.Printf("error monitoring file for changes: %v", err.Error())
+					l.Logger.Warnf("error monitoring file for changes: %v", err.Error())
 				}
 
 			}
@@ -94,7 +95,7 @@ var watchCmd = &cobra.Command{
 
 		err = watcher.Add(spreadsheetPath)
 		cobra.CheckErr(err)
-		log.Printf("watching for changes in file %s", spreadsheetPath)
+		l.Logger.Infof("watching for changes in file %s", spreadsheetPath)
 
 		var c = make(chan os.Signal, 1)
 		signal.Notify(c, syscall.SIGTERM, syscall.SIGINT)
