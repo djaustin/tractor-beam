@@ -42,7 +42,7 @@ var syncCmd = &cobra.Command{
 
 	Run: func(cmd *cobra.Command, args []string) {
 		spreadsheetPath, redisAddress := args[0], args[1]
-		l.Logger.Infof("starting synchronisation from file %s to %s", spreadsheetPath, redisAddress)
+		l.Logger.Info("starting synchronisation of database from file")
 		count, err := db.SyncDatabase(cmd.Context(),
 			redis.NewClient(&redis.Options{Addr: redisAddress}),
 			viper.GetString("redis_prefix"),
@@ -54,7 +54,7 @@ var syncCmd = &cobra.Command{
 		if err != nil {
 			l.Logger.Fatalf("unable to synchronise %s with data from file %s: %v", redisAddress, spreadsheetPath, err)
 		}
-		l.Logger.Infof("%d values synchronised from %s to %s", count, spreadsheetPath, redisAddress)
+		l.Logger.Infof("%d values synchronised from '%s' to '%s'", count, spreadsheetPath, redisAddress)
 	},
 }
 
