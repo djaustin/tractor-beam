@@ -22,7 +22,6 @@ THE SOFTWARE.
 package cmd
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -49,6 +48,17 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.tractor-beam.yaml)")
+	rootCmd.PersistentFlags().StringP("password", "p", "", "password used to access Redis")
+	rootCmd.PersistentFlags().StringP("keycol", "k", "key", "the header of the spreadsheet column containing keys")
+	rootCmd.PersistentFlags().StringP("valcol", "v", "value", "the header of the spreadsheet column containing values")
+	rootCmd.PersistentFlags().StringP("sheet", "s", "Sheet1", "the name of the worksheet containing data for sync")
+	rootCmd.PersistentFlags().String("prefix", "", "prefix attached to all keys inserted into Redis")
+
+	viper.BindPFlag("redis_password", rootCmd.PersistentFlags().Lookup("password"))
+	viper.BindPFlag("key_column", rootCmd.PersistentFlags().Lookup("keycol"))
+	viper.BindPFlag("value_column", rootCmd.PersistentFlags().Lookup("valcol"))
+	viper.BindPFlag("worksheet", rootCmd.PersistentFlags().Lookup("sheet"))
+	viper.BindPFlag("redis_prefix", rootCmd.PersistentFlags().Lookup("prefix"))
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -70,7 +80,5 @@ func initConfig() {
 	viper.AutomaticEnv() // read in environment variables that match
 
 	// If a config file is found, read it in.
-	if err := viper.ReadInConfig(); err == nil {
-		fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed())
-	}
+	viper.ReadInConfig()
 }

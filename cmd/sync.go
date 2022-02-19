@@ -24,6 +24,8 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/djaustin/tractor-beam/db"
+	"github.com/go-redis/redis/v8"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -38,22 +40,18 @@ var syncCmd = &cobra.Command{
 	Example:    fmt.Sprintf("%s sync ./Book1.xlsx 192.168.1.2:6379 -p password123", rootCmd.Use),
 
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Printf("syncing Redis database %s with spreadsheet source %s\n", args[1], args[0])
-		fmt.Printf("extracting keys from %s and values from %s\n", viper.GetString("key_column"), viper.GetString("value_column"))
-		fmt.Printf("using prefx %s", viper.GetString("redis_prefix"))
+		spreadsheetPath, redisAddress := args[0], args[1]
+		db.SyncDatabase(cmd.Context(),
+			redis.NewClient(&redis.Options{Addr: redisAddress}),
+			viper.GetString("redis_prefix"),
+			spreadsheetPath,
+			viper.GetString("worksheet"),
+			viper.GetString("key_column"),
+			viper.GetString("value_column"),
+		)
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(syncCmd)
-
-	syncCmd.Flags().StringP("password", "p", "", "password used to access Redis")
-	syncCmd.Flags().StringP("keycol", "k", "key", "the header of the spreadsheet column containing keys")
-	syncCmd.Flags().StringP("valcol", "v", "value", "the header of the spreadsheet column containing values")
-	syncCmd.Flags().String("prefix", "", "prefix attached to all keys inserted into Redis")
-	viper.BindPFlag("redis_password", syncCmd.Flags().Lookup("password"))
-	viper.BindPFlag("redis_address", syncCmd.Flags().Lookup("target"))
-	viper.BindPFlag("key_column", syncCmd.Flags().Lookup("keycol"))
-	viper.BindPFlag("value_column", syncCmd.Flags().Lookup("valcol"))
-	viper.BindPFlag("redis_prefix", syncCmd.Flags().Lookup("prefix"))
 }
