@@ -68,7 +68,7 @@ func init() {
 	rootCmd.PersistentFlags().String("valcol", "value", "the header of the spreadsheet column containing values")
 	rootCmd.PersistentFlags().StringP("sheet", "s", "Sheet1", "the name of the worksheet containing data for sync")
 	rootCmd.PersistentFlags().StringP("prefix", "p", "", "prefix attached to all keys inserted into Redis")
-	rootCmd.PersistentFlags().StringP("loglevel", "l", "info", "logging level of the application (debug, info, warn, error, panic, fatal")
+	rootCmd.PersistentFlags().StringP("loglevel", "l", "info", "logging level of the application (debug, info, warn, error, panic, fatal)")
 
 	err := viper.BindPFlag("key_column", rootCmd.PersistentFlags().Lookup("keycol"))
 	if err != nil {
