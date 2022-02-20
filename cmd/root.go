@@ -64,18 +64,13 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.tractor-beam.yaml)")
-	rootCmd.PersistentFlags().StringP("password", "p", "", "password used to access Redis")
 	rootCmd.PersistentFlags().String("keycol", "key", "the header of the spreadsheet column containing keys")
 	rootCmd.PersistentFlags().String("valcol", "value", "the header of the spreadsheet column containing values")
 	rootCmd.PersistentFlags().StringP("sheet", "s", "Sheet1", "the name of the worksheet containing data for sync")
-	rootCmd.PersistentFlags().String("prefix", "", "prefix attached to all keys inserted into Redis")
+	rootCmd.PersistentFlags().StringP("prefix", "p", "", "prefix attached to all keys inserted into Redis")
 	rootCmd.PersistentFlags().StringP("loglevel", "l", "info", "logging level of the application (debug, info, warn, error, panic, fatal")
 
-	err := viper.BindPFlag("redis_password", rootCmd.PersistentFlags().Lookup("password"))
-	if err != nil {
-		l.Logger.Fatal(err)
-	}
-	err = viper.BindPFlag("key_column", rootCmd.PersistentFlags().Lookup("keycol"))
+	err := viper.BindPFlag("key_column", rootCmd.PersistentFlags().Lookup("keycol"))
 	if err != nil {
 		l.Logger.Fatal(err)
 	}
@@ -108,8 +103,8 @@ func initConfig() {
 		cobra.CheckErr(err)
 
 		// Search config in home directory with name ".tractor-beam" (without extension).
-		viper.AddConfigPath(home)
 		viper.AddConfigPath(".")
+		viper.AddConfigPath(home)
 		viper.AddConfigPath("/etc/tractor-beam")
 		viper.SetConfigType("yaml")
 		viper.SetConfigName("tractor-beam")
