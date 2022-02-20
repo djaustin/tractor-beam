@@ -1,0 +1,14 @@
+# The header/title of the column containing the data to be used as the Redis key
+key_column: key
+
+# The header/title of the column containing the data to be used as the Redis value
+value_column: value
+
+# The name of the sheet in the spreadsheet containing the data for synchronisation
+worksheet: Sheet1
+
+# Optional prefix to add to Redis keys to scope the synchronisation
+redis_prefix: TB_
+
+# Logging level for console output
+log_level: INFO
