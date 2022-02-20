@@ -24,8 +24,10 @@ package cmd
 import (
 	"os"
 
+	l "github.com/djaustin/tractor-beam/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"go.uber.org/zap/zapcore"
 )
 
 var cfgFile string
@@ -34,6 +36,20 @@ var cfgFile string
 var rootCmd = &cobra.Command{
 	Use:   "tractor-beam",
 	Short: "A CLI for synchronising a Redis key-value store with an Excel spreadsheet",
+	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		inputLevel := viper.GetString("log_level")
+		level, err := zapcore.ParseLevel(inputLevel)
+		if err != nil {
+			l.Logger.Warnf("unable to parse provided log level, defaulting to ERROR: %v", err)
+		} else {
+			l.SetLevel(level)
+		}
+		if file := viper.ConfigFileUsed(); file != "" {
+			l.Logger.Infof("using configuration file %q", file)
+		} else {
+			l.Logger.Warn("no configuration file found")
+		}
+	},
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -49,16 +65,36 @@ func init() {
 	cobra.OnInitialize(initConfig)
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.tractor-beam.yaml)")
 	rootCmd.PersistentFlags().StringP("password", "p", "", "password used to access Redis")
-	rootCmd.PersistentFlags().StringP("keycol", "k", "key", "the header of the spreadsheet column containing keys")
-	rootCmd.PersistentFlags().StringP("valcol", "v", "value", "the header of the spreadsheet column containing values")
+	rootCmd.PersistentFlags().String("keycol", "key", "the header of the spreadsheet column containing keys")
+	rootCmd.PersistentFlags().String("valcol", "value", "the header of the spreadsheet column containing values")
 	rootCmd.PersistentFlags().StringP("sheet", "s", "Sheet1", "the name of the worksheet containing data for sync")
 	rootCmd.PersistentFlags().String("prefix", "", "prefix attached to all keys inserted into Redis")
+	rootCmd.PersistentFlags().StringP("loglevel", "l", "error", "logging level of the application (debug, info, warn, error, panic, fatal")
 
-	viper.BindPFlag("redis_password", rootCmd.PersistentFlags().Lookup("password"))
-	viper.BindPFlag("key_column", rootCmd.PersistentFlags().Lookup("keycol"))
-	viper.BindPFlag("value_column", rootCmd.PersistentFlags().Lookup("valcol"))
-	viper.BindPFlag("worksheet", rootCmd.PersistentFlags().Lookup("sheet"))
-	viper.BindPFlag("redis_prefix", rootCmd.PersistentFlags().Lookup("prefix"))
+	err := viper.BindPFlag("redis_password", rootCmd.PersistentFlags().Lookup("password"))
+	if err != nil {
+		l.Logger.Fatal(err)
+	}
+	err = viper.BindPFlag("key_column", rootCmd.PersistentFlags().Lookup("keycol"))
+	if err != nil {
+		l.Logger.Fatal(err)
+	}
+	err = viper.BindPFlag("value_column", rootCmd.PersistentFlags().Lookup("valcol"))
+	if err != nil {
+		l.Logger.Fatal(err)
+	}
+	err = viper.BindPFlag("worksheet", rootCmd.PersistentFlags().Lookup("sheet"))
+	if err != nil {
+		l.Logger.Fatal(err)
+	}
+	err = viper.BindPFlag("redis_prefix", rootCmd.PersistentFlags().Lookup("prefix"))
+	if err != nil {
+		l.Logger.Fatal(err)
+	}
+	err = viper.BindPFlag("log_level", rootCmd.PersistentFlags().Lookup("loglevel"))
+	if err != nil {
+		l.Logger.Fatal(err)
+	}
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -73,8 +109,10 @@ func initConfig() {
 
 		// Search config in home directory with name ".tractor-beam" (without extension).
 		viper.AddConfigPath(home)
+		viper.AddConfigPath(".")
+		viper.AddConfigPath("/etc/tractor-beam")
 		viper.SetConfigType("yaml")
-		viper.SetConfigName(".tractor-beam")
+		viper.SetConfigName("tractor-beam")
 	}
 
 	viper.AutomaticEnv() // read in environment variables that match
