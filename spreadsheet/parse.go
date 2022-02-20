@@ -13,7 +13,7 @@ func ExtractPairs(path, sheet, keyHeader, valHeader string) (map[string]string, 
 	if err != nil {
 		return nil, err
 	}
-	l.Logger.Infof("opened spreadsheet file '%s'", path)
+	l.Logger.Debugf("opened spreadsheet file '%s'", path)
 
 	cols, err := f.GetCols(sheet)
 	if err != nil {
@@ -39,7 +39,7 @@ func ExtractPairs(path, sheet, keyHeader, valHeader string) (map[string]string, 
 		key, value := row[keyColIdx], row[valColIdx]
 		results[key] = value
 	}
-	l.Logger.Infof("scanned %d rows of data", len(rows)-1)
+	l.Logger.Debugf("scanned %d rows of data", len(rows)-1)
 	return results, nil
 }
 
@@ -62,10 +62,10 @@ func findColumnIndices(cols [][]string, keyHeader, valHeader string) (keyColIdx,
 		}
 	}
 	if !valColFound {
-		return keyColIdx, valColIdx, fmt.Errorf("failed to find value column '%s'", valHeader)
+		return keyColIdx, valColIdx, fmt.Errorf("failed to find value column with label %q", valHeader)
 	}
 	if !keyColFound {
-		return keyColIdx, valColIdx, fmt.Errorf("failed to find key column '%s'", keyHeader)
+		return keyColIdx, valColIdx, fmt.Errorf("failed to find key column with label %q", keyHeader)
 	}
 	return keyColIdx, valColIdx, nil
 }

@@ -48,7 +48,7 @@ var watchCmd = &cobra.Command{
 		// Run initial sync before watching
 		l.Logger.Info("starting initial synchronisation of database from file")
 		redisClient := redis.NewClient(&redis.Options{Addr: redisAddress})
-		l.Logger.Infof("new Redis client created for '%s'", redisAddress)
+		l.Logger.Debugf("new Redis client created for '%s'", redisAddress)
 
 		updateCount, err := db.SyncDatabase(cmd.Context(),
 			redisClient,
@@ -61,6 +61,7 @@ var watchCmd = &cobra.Command{
 		if err != nil {
 			l.Logger.Fatalf("unable to synchronise %s with data from file %s: %v", redisAddress, spreadsheetPath, err)
 		}
+		l.Logger.Info("initial synchronisation completed")
 		l.Logger.Infof("%d values synchronised from %s to %s", updateCount, spreadsheetPath, redisAddress)
 
 		watcher, err := fsnotify.NewWatcher()
@@ -74,8 +75,8 @@ var watchCmd = &cobra.Command{
 					if event.Op != fsnotify.Write && event.Op != fsnotify.Create {
 						continue
 					}
-					l.Logger.Infof("detected %s on watched file '%s'", event.Op.String(), event.Name)
-					l.Logger.Infof("starting synchronise of data from file to %v", redisAddress)
+					l.Logger.Debugf("detected %s on watched file '%s'", event.Op.String(), event.Name)
+					l.Logger.Infof("starting synchronisation of data from file to %v", redisAddress)
 					updateCount, err := db.SyncDatabase(cmd.Context(),
 						redis.NewClient(&redis.Options{Addr: redisAddress}),
 						viper.GetString("redis_prefix"),
@@ -98,7 +99,7 @@ var watchCmd = &cobra.Command{
 
 		err = watcher.Add(spreadsheetPath)
 		cobra.CheckErr(err)
-		l.Logger.Infof("watching for changes in file '%s'", spreadsheetPath)
+		l.Logger.Infof("watching for changes to %q", spreadsheetPath)
 
 		var c = make(chan os.Signal, 1)
 		signal.Notify(c, syscall.SIGTERM, syscall.SIGINT)

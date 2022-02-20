@@ -40,7 +40,7 @@ var rootCmd = &cobra.Command{
 		inputLevel := viper.GetString("log_level")
 		level, err := zapcore.ParseLevel(inputLevel)
 		if err != nil {
-			l.Logger.Warnf("unable to parse provided log level, defaulting to ERROR: %v", err)
+			l.Logger.Warnf("unable to parse provided log level, defaulting to INFO: %v", err)
 		} else {
 			l.SetLevel(level)
 		}
@@ -69,7 +69,7 @@ func init() {
 	rootCmd.PersistentFlags().String("valcol", "value", "the header of the spreadsheet column containing values")
 	rootCmd.PersistentFlags().StringP("sheet", "s", "Sheet1", "the name of the worksheet containing data for sync")
 	rootCmd.PersistentFlags().String("prefix", "", "prefix attached to all keys inserted into Redis")
-	rootCmd.PersistentFlags().StringP("loglevel", "l", "error", "logging level of the application (debug, info, warn, error, panic, fatal")
+	rootCmd.PersistentFlags().StringP("loglevel", "l", "info", "logging level of the application (debug, info, warn, error, panic, fatal")
 
 	err := viper.BindPFlag("redis_password", rootCmd.PersistentFlags().Lookup("password"))
 	if err != nil {
