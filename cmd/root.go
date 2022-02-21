@@ -65,7 +65,7 @@ func init() {
 	cobra.OnInitialize(initConfig)
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.tractor-beam.yaml)")
 	rootCmd.PersistentFlags().String("keycol", "key", "the header of the spreadsheet column containing keys")
-	rootCmd.PersistentFlags().String("valcol", "value", "the header of the spreadsheet column containing values")
+	rootCmd.PersistentFlags().StringSlice("valcol", []string{"value"}, "the header of the spreadsheet column containing values")
 	rootCmd.PersistentFlags().StringP("sheet", "s", "Sheet1", "the name of the worksheet containing data for sync")
 	rootCmd.PersistentFlags().StringP("prefix", "p", "", "prefix attached to all keys inserted into Redis")
 	rootCmd.PersistentFlags().StringP("loglevel", "l", "info", "logging level of the application (debug, info, warn, error, panic, fatal)")
@@ -74,7 +74,7 @@ func init() {
 	if err != nil {
 		l.Logger.Fatal(err)
 	}
-	err = viper.BindPFlag("value_column", rootCmd.PersistentFlags().Lookup("valcol"))
+	err = viper.BindPFlag("value_columns", rootCmd.PersistentFlags().Lookup("valcol"))
 	if err != nil {
 		l.Logger.Fatal(err)
 	}

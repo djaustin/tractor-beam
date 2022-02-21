@@ -56,7 +56,7 @@ var watchCmd = &cobra.Command{
 			spreadsheetPath,
 			viper.GetString("worksheet"),
 			viper.GetString("key_column"),
-			viper.GetString("value_column"),
+			viper.GetStringSlice("value_columns")...,
 		)
 		if err != nil {
 			l.Logger.Fatalf("unable to synchronise %s with data from file %s: %v", redisAddress, spreadsheetPath, err)
@@ -83,7 +83,7 @@ var watchCmd = &cobra.Command{
 						spreadsheetPath,
 						viper.GetString("worksheet"),
 						viper.GetString("key_column"),
-						viper.GetString("value_column"),
+						viper.GetStringSlice("value_columns")...,
 					)
 					if err != nil {
 						l.Logger.Errorf("error synchronising database: %v", err)

@@ -49,7 +49,7 @@ var syncCmd = &cobra.Command{
 			spreadsheetPath,
 			viper.GetString("worksheet"),
 			viper.GetString("key_column"),
-			viper.GetString("value_column"),
+			viper.GetStringSlice("value_columns")...,
 		)
 		if err != nil {
 			l.Logger.Fatalf("unable to synchronise database from file: %v", err)

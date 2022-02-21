@@ -8,7 +8,7 @@ import (
 	"github.com/xuri/excelize/v2"
 )
 
-func ExtractPairs(path, sheet, keyHeader, valHeader string) (map[string]string, error) {
+func ExtractMaps(path, sheet, keyHeader string, valueHeaders ...string) (map[string]map[string]interface{}, error) {
 	f, err := excelize.OpenFile(path)
 	if err != nil {
 		return nil, err
@@ -20,52 +20,62 @@ func ExtractPairs(path, sheet, keyHeader, valHeader string) (map[string]string, 
 		return nil, err
 	}
 
-	keyColIdx, valColIdx, err := findColumnIndices(cols, keyHeader, valHeader)
+	colIndices, err := findColumnIndices(cols, append(valueHeaders, keyHeader)...)
 	if err != nil {
 		return nil, err
 	}
+
 	rows, err := f.GetRows(sheet)
 	if err != nil {
 		l.Logger.Fatal(err)
 	}
 
-	results := make(map[string]string, len(rows)-1)
-
-	for idx, row := range rows {
-		if idx < 1 {
-			// Skip column header
+	results := make(map[string]map[string]interface{}, len(rows)-1)
+	for i, row := range rows {
+		if i < 1 {
 			continue
 		}
-		key, value := row[keyColIdx], row[valColIdx]
-		results[key] = value
+		valueMap := make(map[string]interface{}, len(valueHeaders))
+		for header, index := range colIndices {
+			valueMap[header] = row[index]
+		}
+		key := row[colIndices[strings.ToLower(keyHeader)]]
+		results[key] = valueMap
 	}
-	l.Logger.Debugf("scanned %d rows of data", len(rows)-1)
 	return results, nil
 }
 
-func findColumnIndices(cols [][]string, keyHeader, valHeader string) (keyColIdx, valColIdx int, err error) {
-	var keyColFound, valColFound bool
+func difference(searchSet map[string]struct{}, foundSet map[string]int) []string {
+	var diff []string
 
-	for idx, column := range cols {
-		if strings.EqualFold(keyHeader, column[0]) {
-			keyColIdx = idx
-			keyColFound = true
-			l.Logger.Infof("found column '%s' at index %d", keyHeader, idx)
-		}
-		if strings.EqualFold(valHeader, column[0]) {
-			valColIdx = idx
-			valColFound = true
-			l.Logger.Infof("found column '%s' at index %d", valHeader, idx)
-		}
-		if valColFound && keyColFound {
-			break
+	for k := range searchSet {
+		if _, found := foundSet[k]; !found {
+			diff = append(diff, k)
 		}
 	}
-	if !valColFound {
-		return keyColIdx, valColIdx, fmt.Errorf("failed to find value column with label %q", valHeader)
+	return diff
+}
+
+func findColumnIndices(cols [][]string, headers ...string) (map[string]int, error) {
+
+	// Create a set of headers to search for O(1) lookup
+	searchSet := make(map[string]struct{}, len(headers))
+	for _, v := range headers {
+		searchSet[strings.ToLower(v)] = struct{}{}
 	}
-	if !keyColFound {
-		return keyColIdx, valColIdx, fmt.Errorf("failed to find key column with label %q", keyHeader)
+
+	foundColumns := make(map[string]int, len(headers))
+
+	for i, col := range cols {
+		normalisedHeader := strings.ToLower(col[0])
+		if _, ok := searchSet[normalisedHeader]; ok {
+			foundColumns[normalisedHeader] = i
+		}
+		if len(foundColumns) == len(searchSet) {
+			// All columns found
+			return foundColumns, nil
+		}
 	}
-	return keyColIdx, valColIdx, nil
+
+	return nil, fmt.Errorf("failed to find columns %+v in spreadsheet", difference(searchSet, foundColumns))
 }
