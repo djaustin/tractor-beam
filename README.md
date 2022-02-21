@@ -6,7 +6,7 @@ Given a spreadsheet with two headered columns representing a key and a value, tr
 
 ## Usage
 
-Install the application using the `go` CLI
+Install the application using the `go` CLI or download the appropriate binary from the [releases page.](https://github.com/djaustin/tractor-beam/releases)
 
 ```bash
 go install github.com/djaustin/tractor-beam@latest
