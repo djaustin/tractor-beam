@@ -1,8 +1,8 @@
 # tractor-beam 🛸
 
-An application for synchronising key-value data from a spreadsheet into a Redis database.
+An application for synchronising data from a spreadsheet into a Redis database.
 
-Given a spreadsheet with two headered columns representing a key and a value, tractor-beam will save the key-value pairs to Redis.
+Given a spreadsheet with a nominated key column and one or more value columns, tractor-beam will save the data as hashes to Redis.
 
 ## Usage
 
