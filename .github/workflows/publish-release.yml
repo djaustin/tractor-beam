@@ -38,14 +38,14 @@ jobs:
       name: Build darwin/amd64
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
-        goos: dawrin
+        goos: darwin
         goarch: amd64
 
     - uses: wangyoucao577/go-release-action@v1.25
       name: Build darwin/arm64
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
-        goos: dawrin
+        goos: darwin
         goarch: arm64
 
     - uses: wangyoucao577/go-release-action@v1.25
