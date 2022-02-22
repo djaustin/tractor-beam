@@ -1,0 +1,35 @@
+# .github/workflows/release.yaml
+
+name: Release Binaries
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  release-binaries:
+    name: release linux/amd64
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    
+    - uses: wangyoucao577/go-release-action@v1.25
+      name: Build linux/amd64
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        goos: linux
+        goarch: amd64
+
+    - uses: wangyoucao577/go-release-action@v1.25
+      name: Build linux/arm64
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        goos: linux
+        goarch: arm64
+
+    - uses: wangyoucao577/go-release-action@v1.25
+      name: Build linux/386
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        goos: linux
+        goarch: 386
