@@ -8,7 +8,7 @@ on:
 
 jobs:
   release-binaries:
-    name: release linux/amd64
+    name: release binaries
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -32,4 +32,39 @@ jobs:
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         goos: linux
+        goarch: 386
+
+    - uses: wangyoucao577/go-release-action@v1.25
+      name: Build darwin/amd64
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        goos: dawrin
+        goarch: amd64
+
+    - uses: wangyoucao577/go-release-action@v1.25
+      name: Build darwin/arm64
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        goos: dawrin
+        goarch: arm64
+
+    - uses: wangyoucao577/go-release-action@v1.25
+      name: Build windows/arm64
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        goos: windows
+        goarch: arm64
+
+    - uses: wangyoucao577/go-release-action@v1.25
+      name: Build windows/amd64
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        goos: windows
+        goarch: amd64
+
+    - uses: wangyoucao577/go-release-action@v1.25
+      name: Build windows/386
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        goos: windows
         goarch: 386
